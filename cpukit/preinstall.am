@@ -261,6 +261,10 @@ $(PROJECT_INCLUDE)/rtems/irq-extension.h: include/rtems/irq-extension.h $(PROJEC
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/irq-extension.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/irq-extension.h
 
+$(PROJECT_INCLUDE)/rtems/gpio.h: include/rtems/gpio.h $(PROJECT_INCLUDE)/rtems/$(dirstamp)
+	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/gpio.h
+PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/gpio.h
+
 $(PROJECT_INCLUDE)/rtems/imfs.h: libfs/src/imfs/imfs.h $(PROJECT_INCLUDE)/rtems/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/rtems/imfs.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/rtems/imfs.h

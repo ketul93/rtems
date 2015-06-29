@@ -114,6 +114,9 @@ libbsp_a_SOURCES += ../../shared/console.c \
 # I2C
 libbsp_a_SOURCES += misc/i2c.c
 
+# GPIO
+libbsp_a_SOURCES += gpio/gpio.c
+
 #RTC
 libbsp_a_SOURCES += rtc.c
 libbsp_a_SOURCES += ../../shared/tod.c

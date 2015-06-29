@@ -111,6 +111,9 @@ include_rtems_HEADERS += include/rtems/irq.h
 
 include_rtems_HEADERS += include/rtems/irq-extension.h
 
+## GPIO API
+include_rtems_HEADERS += include/rtems/gpio.h
+
 ## libfs
 include_rtems_HEADERS += libfs/src/imfs/imfs.h
 

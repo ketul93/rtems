@@ -300,3 +300,23 @@
 
 #define AM335X_RTC_KICK0_KEY    0x83E70B13
 #define AM335X_RTC_KICK1_KEY    0x95A4F1E0
+
+    /*Gpio memory registers am335x*/
+#define AM335X_GPIO0                  0x44E07000
+    /* GPIO Bank 0 base Register */
+#define AM335X_GPIO1                  0x4804C000
+    /* GPIO Bank 1 base Register */
+#define AM335X_GPIO2                  0x481AC000
+    /* GPIO Bank 2 base Register */
+#define AM335X_GPIO3                  0x481AE000
+    /* GPIO Bank 3 base Register */
+#define AM335X_GPIO_OE                0x134
+    /* GPIO Output Enable Register */
+#define AM335X_GPIO_DATAOUT           0x13C
+    /* GPIO Output pin set Register */
+#define AM335X_GPIO_DATAIN            0x138
+    /* GPIO Read Data Register */
+#define AM335X_GPIO_CLEARDATAOUT      0x190
+    /* GPIO Output Clear Register */
+#define AM335X_GPIO_SETDATAOUT        0x194
+    /* GPIO Output Set Register */
