@@ -58,7 +58,7 @@ static int gpio_bank_count = GPIO_PIN_COUNT / GPIO_PINS_PER_BANK;
 static rtems_id bank_lock;
 
 static const uint32_t gpio_bank_addrs[] = 
- { AM335X_GPIO0, AM335X_GPIO1, AM335X_GPIO2, AM335X_GPIO3 };
+  { AM335X_GPIO0, AM335X_GPIO1, AM335X_GPIO2, AM335X_GPIO3 };
 
 static uint32_t inline get_pin_mask(unsigned int pin_number)
 {
@@ -67,18 +67,18 @@ static uint32_t inline get_pin_mask(unsigned int pin_number)
 
 static void inline reg_update_set(unsigned int pin_number,uint32_t reg)
 {
- uint32_t gpioreg=gpio_bank[pin_number]+reg;
- uint32_t gpioreg_val=mmio_read(gpioreg);
- gpioreg_val |= get_pin_mask(pin_number);
- mmio_write(gpioreg, gpioreg_val);
+  uint32_t gpioreg=gpio_bank[pin_number]+reg;
+  uint32_t gpioreg_val=mmio_read(gpioreg);
+  gpioreg_val |= get_pin_mask(pin_number);
+  mmio_write(gpioreg, gpioreg_val);
 }
 
 static void inline reg_update_unset(unsigned int pin_number,uint32_t reg)
 {
- uint32_t gpioreg=gpio_bank[pin_number]+reg;
- uint32_t gpioreg_val=mmio_read(gpioreg);
- gpioreg_val &= ~get_pin_mask(pin_number);
- mmio_write(gpioreg, gpioreg_val);
+  uint32_t gpioreg=gpio_bank[pin_number]+reg;
+  uint32_t gpioreg_val=mmio_read(gpioreg);
+  gpioreg_val &= ~get_pin_mask(pin_number);
+  mmio_write(gpioreg, gpioreg_val);
 }
 
 /**
@@ -89,25 +89,24 @@ static void inline reg_update_unset(unsigned int pin_number,uint32_t reg)
  */
 void rtems_gpio_initialize(void)
 { 
- int i;
- rtems_status_code status;
- if ( is_initialized )
-   return;
+  int i;
+  rtems_status_code status;
+  if ( is_initialized )
+    return;
  
- is_initialized = true;
- for ( i = 0; i < GPIO_PIN_COUNT; ++i ) {
-   gpio_pin_state[i] = GPIO_PIN_STATE_UNCONFIGURED;
- }
+  is_initialized = true;
+  for ( i = 0; i < GPIO_PIN_COUNT; ++i ) {
+    gpio_pin_state[i] = GPIO_PIN_STATE_UNCONFIGURED;
+  }
  /* Create GPIO bank Semaphores */
- status = rtems_semaphore_create(
- rtems_build_name('G', 'L', 'C', 'K'), 
-      1, 
-      MUTEX_ATRIBUTES, 
-      0, 
-      &bank_lock
-      );
- if (status != RTEMS_SUCCESSFUL)
-  {
+  status = rtems_semaphore_create(
+    rtems_build_name('G', 'L', 'C', 'K'), 
+    1, 
+    MUTEX_ATRIBUTES, 
+    0, 
+    &bank_lock
+  );
+  if (status != RTEMS_SUCCESSFUL){
     printf("Semaphore not created\n");
   }
 }
@@ -123,26 +122,26 @@ int rtems_gpio_configure_pin_digital_out(
   gpio_pin_handle *gpio_pin_assign,unsigned int pin_number)
 {
   OBTAIN_LOCK(bank_lock);
- if (pin_number >= GPIO_PIN_COUNT || pin_number < 0){
-   RELEASE_LOCK(bank_lock);
-   return GPIO_UNKNOWN_PIN;
- }
- if (
- gpio_pin_state[gpio_pin_assign->pin_number] != GPIO_PIN_STATE_UNCONFIGURED &&
- gpio_pin_state[gpio_pin_assign->pin_number] != GPIO_PIN_STATE_DIGITAL_OUT){
-   RELEASE_LOCK(bank_lock);
-   return GPIO_MISCONFIGURED_PIN;
- }
+  if (pin_number >= GPIO_PIN_COUNT || pin_number < 0){
+    RELEASE_LOCK(bank_lock);
+    return GPIO_UNKNOWN_PIN;
+  }
+  if (
+  gpio_pin_state[gpio_pin_assign->pin_number] != GPIO_PIN_STATE_UNCONFIGURED &&
+  gpio_pin_state[gpio_pin_assign->pin_number] != GPIO_PIN_STATE_DIGITAL_OUT){
+    RELEASE_LOCK(bank_lock);
+    return GPIO_MISCONFIGURED_PIN;
+  }
  
- gpio_pin_state[gpio_pin_assign->pin_number] = GPIO_PIN_STATE_DIGITAL_OUT;
- gpio_pin_assign->pin_number = pin_number;
- gpio_bank_pin[pin_number] = pin_number % GPIO_PINS_PER_BANK;
- gpio_bank[pin_number] = gpio_bank_addrs[pin_number/GPIO_PINS_PER_BANK];
+  gpio_pin_state[gpio_pin_assign->pin_number] = GPIO_PIN_STATE_DIGITAL_OUT;
+  gpio_pin_assign->pin_number = pin_number;
+  gpio_bank_pin[pin_number] = pin_number % GPIO_PINS_PER_BANK;
+  gpio_bank[pin_number] = gpio_bank_addrs[pin_number/GPIO_PINS_PER_BANK];
 
- reg_update_unset(gpio_pin_assign->pin_number,AM335X_GPIO_OE);
+  reg_update_unset(gpio_pin_assign->pin_number,AM335X_GPIO_OE);
 
- RELEASE_LOCK(bank_lock);
- return GPIO_SUCCESSFUL;
+  RELEASE_LOCK(bank_lock);
+  return GPIO_SUCCESSFUL;
 }
 
 /**
@@ -153,17 +152,17 @@ int rtems_gpio_configure_pin_digital_out(
  */
 int rtems_gpio_digital_set(gpio_pin_handle *gpio_pin_assign)
 {
- OBTAIN_LOCK(bank_lock);
- if (gpio_pin_state[gpio_pin_assign->pin_number] != GPIO_PIN_STATE_DIGITAL_OUT)
- {
-   RELEASE_LOCK(bank_lock);
-   return GPIO_MISCONFIGURED_PIN;
- }
+  OBTAIN_LOCK(bank_lock);
+  if (
+  gpio_pin_state[gpio_pin_assign->pin_number] != GPIO_PIN_STATE_DIGITAL_OUT){
+    RELEASE_LOCK(bank_lock);
+    return GPIO_MISCONFIGURED_PIN;
+  }
 
- reg_update_set(gpio_pin_assign->pin_number,AM335X_GPIO_DATAOUT);
+  reg_update_set(gpio_pin_assign->pin_number,AM335X_GPIO_DATAOUT);
  
- RELEASE_LOCK(bank_lock);
- return GPIO_SUCCESSFUL;
+  RELEASE_LOCK(bank_lock);
+  return GPIO_SUCCESSFUL;
 }
 
 /**
@@ -174,17 +173,17 @@ int rtems_gpio_digital_set(gpio_pin_handle *gpio_pin_assign)
  */
 int rtems_gpio_digital_clear(gpio_pin_handle *gpio_pin_assign)
 {
- OBTAIN_LOCK(bank_lock);
- if (gpio_pin_state[gpio_pin_assign->pin_number] == GPIO_PIN_STATE_DIGITAL_OUT)
- {
-   RELEASE_LOCK(bank_lock);
-   return GPIO_MISCONFIGURED_PIN ;
- }
+  OBTAIN_LOCK(bank_lock);
+  if (
+  gpio_pin_state[gpio_pin_assign->pin_number] == GPIO_PIN_STATE_DIGITAL_OUT){
+    RELEASE_LOCK(bank_lock);
+    return GPIO_MISCONFIGURED_PIN ;
+  }
 
- reg_update_unset(gpio_pin_assign->pin_number,AM335X_GPIO_DATAOUT);
+  reg_update_unset(gpio_pin_assign->pin_number,AM335X_GPIO_DATAOUT);
  
- RELEASE_LOCK(bank_lock);
- return GPIO_SUCCESSFUL;
+  RELEASE_LOCK(bank_lock);
+  return GPIO_SUCCESSFUL;
 }
 /**
  * @brief Releases currently configured pin and makes unused for repurposing.
@@ -194,18 +193,18 @@ int rtems_gpio_digital_clear(gpio_pin_handle *gpio_pin_assign)
  */
 int rtems_gpio_release_pin(gpio_pin_handle *gpio_pin_assign)
 {
- OBTAIN_LOCK(bank_lock);
- if (
- gpio_pin_state[gpio_pin_assign->pin_number] == GPIO_PIN_STATE_UNCONFIGURED){
-   RELEASE_LOCK(bank_lock);
-   return GPIO_SUCCESSFUL;
- }
+  OBTAIN_LOCK(bank_lock);
+  if (
+  gpio_pin_state[gpio_pin_assign->pin_number] == GPIO_PIN_STATE_UNCONFIGURED){
+    RELEASE_LOCK(bank_lock);
+    return GPIO_SUCCESSFUL;
+  }
  
- OBTAIN_LOCK(bank_lock);
+  OBTAIN_LOCK(bank_lock);
  
- gpio_pin_state[gpio_pin_assign->pin_number] = GPIO_PIN_STATE_UNCONFIGURED;
- reg_update_set(gpio_pin_assign->pin_number,AM335X_GPIO_OE);
+  gpio_pin_state[gpio_pin_assign->pin_number] = GPIO_PIN_STATE_UNCONFIGURED;
+  reg_update_set(gpio_pin_assign->pin_number,AM335X_GPIO_OE);
 
- RELEASE_LOCK(bank_lock);
- return GPIO_SUCCESSFUL;
+  RELEASE_LOCK(bank_lock);
+  return GPIO_SUCCESSFUL;
 }

@@ -18,7 +18,7 @@
 
 static void inline delay_sec(int sec)
 {
- rtems_task_wake_after(sec*rtems_clock_get_ticks_per_second());
+  rtems_task_wake_after(sec*rtems_clock_get_ticks_per_second());
 }
 /* forward declarations to avoid warnings */
 rtems_task Init(rtems_task_argument argument);
@@ -29,51 +29,50 @@ rtems_task Init(
   rtems_task_argument ignored
 )
 {
- rtems_test_begin();
- printf("Starting Gpio Testing\n");
+  rtems_test_begin();
+  printf("Starting Gpio Testing\n");
  
  /* Intializing GPIO API */
- rtems_gpio_initialize();
- static gpio_pin_handle led_usr0_handle, led_usr1_handle, led_usr2_handle;
- static gpio_pin_handle led_usr3_handle;
- static unsigned int status;
+  rtems_gpio_initialize();
+  static gpio_pin_handle led_usr0_handle, led_usr1_handle, led_usr2_handle;
+  static gpio_pin_handle led_usr3_handle;
+  static unsigned int status;
  
- status = rtems_gpio_configure_pin_digital_out(&led_usr0_handle, BBB_LED_USR0);
- if (status == GPIO_SUCCESSFUL) {
+  status = rtems_gpio_configure_pin_digital_out(&led_usr0_handle, BBB_LED_USR0);
+  if (status == GPIO_SUCCESSFUL) {
     rtems_gpio_digital_set(&led_usr0_handle);
     delay_sec(1);
     rtems_gpio_digital_clear(&led_usr0_handle);
     delay_sec(1);
     rtems_gpio_release_pin(&led_usr0_handle);
- }
- status = rtems_gpio_configure_pin_digital_out(&led_usr1_handle, BBB_LED_USR1);
- if (status == GPIO_SUCCESSFUL) {
+  }
+  status = rtems_gpio_configure_pin_digital_out(&led_usr1_handle, BBB_LED_USR1);
+  if (status == GPIO_SUCCESSFUL) {
     rtems_gpio_digital_set(&led_usr1_handle);
     delay_sec(1);
     rtems_gpio_digital_clear(&led_usr1_handle);
     delay_sec(1);
     rtems_gpio_release_pin(&led_usr1_handle);
- }
- status = rtems_gpio_configure_pin_digital_out(&led_usr2_handle, BBB_LED_USR2);
- if (status == GPIO_SUCCESSFUL) {
+  }
+  status = rtems_gpio_configure_pin_digital_out(&led_usr2_handle, BBB_LED_USR2);
+  if (status == GPIO_SUCCESSFUL) {
     rtems_gpio_digital_set(&led_usr2_handle);
     delay_sec(1);
     rtems_gpio_digital_clear(&led_usr2_handle);
     delay_sec(1);
     rtems_gpio_release_pin(&led_usr2_handle);
- }
- status = rtems_gpio_configure_pin_digital_out(&led_usr3_handle, BBB_LED_USR3);
- if (status == GPIO_SUCCESSFUL) {
+  }
+  status = rtems_gpio_configure_pin_digital_out(&led_usr3_handle, BBB_LED_USR3);
+  if (status == GPIO_SUCCESSFUL) {
     rtems_gpio_digital_set(&led_usr3_handle);
     delay_sec(1);
     rtems_gpio_digital_clear(&led_usr3_handle);
     delay_sec(1);
     rtems_gpio_release_pin(&led_usr3_handle);
-
- }
- printf("Gpio Test Completed\n");
- rtems_test_end();
- exit( 0 );
+  }
+  printf("Gpio Test Completed\n");
+  rtems_test_end();
+  exit( 0 );
 }
 
 /* NOTICE: the clock driver is enabled */
