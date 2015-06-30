@@ -52,8 +52,6 @@ static unsigned int gpio_bank[GPIO_PIN_COUNT];
 static unsigned int gpio_pin_state[GPIO_PIN_COUNT];
 /* Variable for gpio initialization */
 static bool is_initialized = false;
-/* Total number of gpio banks */
-static int gpio_bank_count = GPIO_PIN_COUNT / GPIO_PINS_PER_BANK;
 /* Semaphore for avoiding race condition */
 static rtems_id bank_lock;
 
@@ -192,7 +190,7 @@ int rtems_gpio_digital_clear(gpio_pin_handle *gpio_pin_assign){
  *
  */
 int rtems_gpio_release_pin(gpio_pin_handle *gpio_pin_assign){
-  
+
   OBTAIN_LOCK(bank_lock);
   if (
   gpio_pin_state[gpio_pin_assign->pin_number] == GPIO_PIN_STATE_UNCONFIGURED){

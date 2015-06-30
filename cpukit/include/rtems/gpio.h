@@ -62,3 +62,5 @@ extern int rtems_gpio_digital_clear(gpio_pin_handle *);
  * @brief currently configured pin is released and made UNCONFIGURED.
  */
 extern int rtems_gpio_release_pin(gpio_pin_handle *);
+
+#endif /* _RTEMS_GPIO_H */
