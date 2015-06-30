@@ -32,7 +32,7 @@ rtems_task Init(
   rtems_test_begin();
   printf("Starting Gpio Testing\n");
  
- /* Intializing GPIO API */
+  /* Intializing GPIO API */
   rtems_gpio_initialize();
   static gpio_pin_handle led_usr0_handle, led_usr1_handle, led_usr2_handle;
   static gpio_pin_handle led_usr3_handle;
