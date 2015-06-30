@@ -98,7 +98,7 @@ void rtems_gpio_initialize(void)
   for ( i = 0; i < GPIO_PIN_COUNT; ++i ) {
     gpio_pin_state[i] = GPIO_PIN_STATE_UNCONFIGURED;
   }
- /* Create GPIO bank Semaphores */
+  /* Create GPIO bank Semaphores */
   status = rtems_semaphore_create(
     rtems_build_name('G', 'L', 'C', 'K'), 
     1, 
@@ -119,8 +119,8 @@ void rtems_gpio_initialize(void)
  * @retval GPIO_MISCONFIGURED_PIN Pin is already configured for another state.
  */
 int rtems_gpio_configure_pin_digital_out(
-  gpio_pin_handle *gpio_pin_assign,unsigned int pin_number)
-{
+  gpio_pin_handle *gpio_pin_assign,unsigned int pin_number){
+  
   OBTAIN_LOCK(bank_lock);
   if (pin_number >= GPIO_PIN_COUNT || pin_number < 0){
     RELEASE_LOCK(bank_lock);
@@ -150,8 +150,8 @@ int rtems_gpio_configure_pin_digital_out(
  * @retval GPIO_MISCONFIGURED_PIN The received pin is not configured 
  *         for digital output.
  */
-int rtems_gpio_digital_set(gpio_pin_handle *gpio_pin_assign)
-{
+int rtems_gpio_digital_set(gpio_pin_handle *gpio_pin_assign){
+
   OBTAIN_LOCK(bank_lock);
   if (
   gpio_pin_state[gpio_pin_assign->pin_number] != GPIO_PIN_STATE_DIGITAL_OUT){
@@ -171,8 +171,8 @@ int rtems_gpio_digital_set(gpio_pin_handle *gpio_pin_assign)
  * @retval GPIO_MISCONFIGURED_PIN The received pin is not configured 
  *         for digital output.
  */
-int rtems_gpio_digital_clear(gpio_pin_handle *gpio_pin_assign)
-{
+int rtems_gpio_digital_clear(gpio_pin_handle *gpio_pin_assign){
+
   OBTAIN_LOCK(bank_lock);
   if (
   gpio_pin_state[gpio_pin_assign->pin_number] == GPIO_PIN_STATE_DIGITAL_OUT){
@@ -191,8 +191,8 @@ int rtems_gpio_digital_clear(gpio_pin_handle *gpio_pin_assign)
  *         UNCONFIGURED state.
  *
  */
-int rtems_gpio_release_pin(gpio_pin_handle *gpio_pin_assign)
-{
+int rtems_gpio_release_pin(gpio_pin_handle *gpio_pin_assign){
+  
   OBTAIN_LOCK(bank_lock);
   if (
   gpio_pin_state[gpio_pin_assign->pin_number] == GPIO_PIN_STATE_UNCONFIGURED){
