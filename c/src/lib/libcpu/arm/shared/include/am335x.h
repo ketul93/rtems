@@ -300,3 +300,73 @@
 
 #define AM335X_RTC_KICK0_KEY    0x83E70B13
 #define AM335X_RTC_KICK1_KEY    0x95A4F1E0
+
+/* I2C registers */
+#define AM335X_I2C0_BASE 0x44e0b000
+    /* I2C0 base address */
+#define AM335X_I2C1_BASE 0x4802a000
+    /* I2C1 base address */
+#define AM335X_I2C2_BASE 0x4819c000
+    /* I2C2 base address */
+#define AM335X_I2C_REVNB_LO        0x00
+    /* Module Revision Register (low bytes) */
+#define AM335X_I2C_REVNB_HI        0x04
+    /* Module Revision Register (high bytes) */
+#define AM335X_I2C_SYSC            0x10
+    /* System Configuration Register */
+#define AM335X_I2C_IRQSTATUS_RAW   0x24
+    /* I2C Status Raw Register */
+#define AM335X_I2C_IRQSTATUS       0x28
+    /* I2C Status Register */
+#define AM335X_I2C_IRQENABLE_SET   0x2c
+    /* I2C Interrupt Enable Set Register */
+#define AM335X_I2C_IRQENABLE_CLR   0x30
+    /* I2C Interrupt Enable Clear Register */
+#define AM335X_I2C_WE              0x34
+    /* I2C Wakeup Enable Register */
+#define AM335X_I2C_DMARXENABLE_SET 0x38
+    /* Receive DMA Enable Set Register */
+#define AM335X_I2C_DMATXENABLE_SET 0x3c
+    /* Transmit DMA Enable Set Register */
+#define AM335X_I2C_DMARXENABLE_CLR 0x40
+    /* Receive DMA Enable Clear Register */
+#define AM335X_I2C_DMATXENABLE_CLR 0x44
+    /* Transmit DMA Enable Clear Register */
+#define AM335X_I2C_DMARXWAKE_EN    0x48
+    /* Receive DMA Wakeup Register */
+#define AM335X_I2C_DMATXWAKE_EN    0x4c
+    /* Transmit DMA Wakeup Register */
+#define AM335X_I2C_SYSS            0x90
+    /* System Status Register */
+#define AM335X_I2C_BUF             0x94
+    /* Buffer Configuration Register */
+#define AM335X_I2C_CNT             0x98
+    /* Data Counter Register */
+#define AM335X_I2C_DATA            0x9c
+    /* Data Access Register */
+#define AM335X_I2C_CON             0xa4
+    /* I2C Configuration Register */
+#define AM335X_I2C_OA              0xa8
+    /* I2C Own Address Register */
+#define AM335X_I2C_SA              0xac
+    /* I2C Slave Address Register */
+#define AM335X_I2C_PSC             0xb0
+    /* I2C Clock Prescaler Register */
+#define AM335X_I2C_SCLL            0xb4
+    /* I2C SCL Low Time Register */
+#define AM335X_I2C_SCLH            0xb8
+    /* I2C SCL High Time Register */
+#define AM335X_I2C_SYSTEST         0xbc
+    /* System Test Register */
+#define AM335X_I2C_BUFSTAT         0xc0
+    /* I2C Buffer Status Register */
+#define AM335X_I2C_OA1             0xc4
+    /* I2C Own Address 1 Register */
+#define AM335X_I2C_OA2             0xc8
+    /* I2C Own Address 2 Register */
+#define AM335X_I2C_OA3             0xcc
+    /* I2C Own Address 3 Register */
+#define AM335X_I2C_ACTOA           0xd0
+    /* Active Own Address Register */
+#define AM335X_I2C_SBLOCK          0xd4
+    /* I2C Clock Blocking Enable Register */
