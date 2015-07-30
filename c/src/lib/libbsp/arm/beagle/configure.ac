@@ -33,6 +33,9 @@ RTEMS_BSPOPTS_HELP([CONSOLE_POLLED],[polled console i/o (e.g. to run testsuite)]
 RTEMS_BSPOPTS_SET([BBB_DEBUG],[beaglebone*],[0])
 RTEMS_BSPOPTS_HELP([BBB_DEBUG],[Enable BBB debug])
 
+RTEMS_BSPOPTS_SET([I2C_IO_MODE],[*],[1])
+RTEMS_BSPOPTS_HELP([I2C_IO_MODE],[Define to 1 to use interrupt-driven I/O with the BeagleBoard I2C bus. If defined to other value the access will be polled-driven.])
+
 RTEMS_BSP_CLEANUP_OPTIONS(0, 0)
 RTEMS_BSP_LINKCMDS
 
