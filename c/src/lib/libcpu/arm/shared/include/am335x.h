@@ -308,6 +308,12 @@
     /* I2C1 base address */
 #define AM335X_I2C2_BASE 0x4819c000
     /* I2C2 base address */
+#define AM335X_CM_WKUP_I2C0_CLKCTRL 0x44E00400 + 0xB8
+ 	/* I2C0 Clock Module Wakeup Register */
+#define AM335X_CM_PER_I2C1_CLKCTRL 0x44E00000 + 0x48
+ 	/* I2C1 Clock Module Peripheral Register */
+#define AM335X_CM_PER_I2C2_CLKCTRL 0x44E00000 + 0x44
+ 	/* I2C2 Clock Module Peripheral Register */
 #define AM335X_I2C_REVNB_LO        0x00
     /* Module Revision Register (low bytes) */
 #define AM335X_I2C_REVNB_HI        0x04
