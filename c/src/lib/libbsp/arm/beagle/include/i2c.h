@@ -8,6 +8,7 @@
 
 /*
  * Copyright (c) 2012 Claas Ziemke. All rights reserved.
+ * Copyright (c) 2015 Ketul Shah. All rights reserved.
  *
  *  Claas Ziemke
  *  Kernerstrasse 11
@@ -18,6 +19,7 @@
  * The license and distribution terms for this file may be
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.org/license/LICENSE.
+ *
  */
 
 #ifndef LIBBSP_ARM_BEAGLE_I2C_H
@@ -26,11 +28,15 @@
 #include <rtems.h>
 
 #include <bsp.h>
+#include <bsp/irq.h>
+#include <rtems/libi2c.h>
+#include <libcpu/am335x.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+/* Same offsets for both dm37xx and am335x SoCs */
 
 /* I2C Configuration Register (I2C_CON): */
 
@@ -51,12 +57,28 @@ extern "C" {
 #define I2C_STAT_ROVR (1 << 11) /* Receive overrun */
 #define I2C_STAT_XUDF (1 << 10) /* Transmit underflow */
 #define I2C_STAT_AAS  (1 << 9)  /* Address as slave */
-#define I2C_STAT_GC (1 << 5)
+#define I2C_STAT_GC (1 << 5) /* General call address detected */
 #define I2C_STAT_XRDY (1 << 4)  /* Transmit data ready */
 #define I2C_STAT_RRDY (1 << 3)  /* Receive data ready */
 #define I2C_STAT_ARDY (1 << 2)  /* Register access ready */
 #define I2C_STAT_NACK (1 << 1)  /* No acknowledgment interrupt enable */
 #define I2C_STAT_AL (1 << 0)  /* Arbitration lost interrupt enable */
+
+/* I2C System Configuration Register (I2C_SYSC): */
+
+#define I2C_SYSC_CLKACTIVITY_S (1 << 9) /* Only System clock active */
+#define I2C_SYSC_CLKACTIVITY_I (1 << 8) /* Only Interface/OCP clock active */
+#define I2C_SYSC_SMART_IDLE_MODE (1 << 4) /* Smart-idle Mode */
+#define I2C_SYSC_NO_IDLE_MODE (1 << 3) /* No Idle mode */
+#define I2C_SYSC_SRST (1 << 1) /*  Reset Entire Module (Hardware reset) */
+#define I2C_SYSC_AUTOIDLE (1 << 0) /* Module activates its own Idle mode */
+
+/* I2C Buffer Configuration Register */
+
+#define I2C_BUF_RDMA_EN (1 << 15) /* Receive DMA channel enable */
+#define I2C_BUF_RXFIFO_CLR (1 << 14) /* Receive FIFO clear */
+#define I2C_BUF_XDMA_EN (1 << 7) /* Transmit DMA channel enable */
+#define I2C_BUF_TXFIFO_CLR (1 << 6) /* Transmit FIFO clear */
 
 /* I2C Interrupt Enable Register (I2C_IE): */
 #define I2C_IE_GC_IE  (1 << 5)
@@ -65,6 +87,20 @@ extern "C" {
 #define I2C_IE_ARDY_IE  (1 << 2) /* Register access ready interrupt enable */
 #define I2C_IE_NACK_IE  (1 << 1) /* No acknowledgment interrupt enable */
 #define I2C_IE_AL_IE  (1 << 0) /* Arbitration lost interrupt enable */
+
+/* General(I2C_IRQSTATUS / I2C_STAT / I2C_IRQENABLE_SET / I2C_IE) 
+ * offsets for active events
+ */
+
+#define I2C_BB   (1 << 12) /* Bus busy */
+#define I2C_ROVR (1 << 11) /* Receive overrun */
+#define I2C_AERR (1 << 7)  /* Access Error */
+#define I2C_XRDY (1 << 4) /* Transmit data ready */
+#define I2C_RRDY (1 << 3) /* Receive data ready */
+#define I2C_ARDY (1 << 2) /* Register access ready */
+#define I2C_NACK (1 << 1) /* No acknowledgment */
+#define I2C_AL   (1 << 0) /* Arbitration lost */
+
 /*
  * The equation for the low and high time is
  * tlow = scll + scll_trim = (sampling clock * tlow_duty) / speed
@@ -106,9 +142,9 @@ extern "C" {
 #define I2C_HIGHSPEED_PHASE_TWO_SCLH_TRIM I2C_FASTSPEED_SCLH_TRIM
 #endif
 
-#define OMAP_I2C_STANDARD 100000
-#define OMAP_I2C_FAST_MODE  400000
-#define OMAP_I2C_HIGH_SPEED 3400000
+#define OMAP_I2C_STANDARD 100000 /* 100 KHz */
+#define OMAP_I2C_FAST_MODE  400000 /* 400 KHz */
+#define OMAP_I2C_HIGH_SPEED 3400000 /* 3.4 MHz */
 
 
 /* Use the reference value of 96MHz if not explicitly set by the board */
@@ -130,6 +166,7 @@ extern "C" {
 #define I2C_PSC_MAX   0x0f
 #define I2C_PSC_MIN   0x00
 
+#define I2C_OWN_ADDRESS 0x01 /* I2C own Address (to be written in I2C_OA) */
 
 #define DISP_LINE_LEN 128
 #define I2C_TIMEOUT 1000
@@ -145,40 +182,44 @@ extern "C" {
 #define CONFIG_SYS_I2C_SPEED    100000
 #define CONFIG_SYS_I2C_SLAVE    1
 
-struct i2c {
-  unsigned short rev;   /* 0x00 */
-  unsigned short res1;
-  unsigned short ie;    /* 0x04 */
-  unsigned short res2;
-  unsigned short stat;  /* 0x08 */
-  unsigned short res3;
-  unsigned short iv;    /* 0x0C */
-  unsigned short res4;
-  unsigned short syss;  /* 0x10 */
-  unsigned short res4a;
-  unsigned short buf;   /* 0x14 */
-  unsigned short res5;
-  unsigned short cnt;   /* 0x18 */
-  unsigned short res6;
-  unsigned short data;  /* 0x1C */
-  unsigned short res7;
-  unsigned short sysc;  /* 0x20 */
-  unsigned short res8;
-  unsigned short con;   /* 0x24 */
-  unsigned short res9;
-  unsigned short oa;    /* 0x28 */
-  unsigned short res10;
-  unsigned short sa;    /* 0x2C */
-  unsigned short res11;
-  unsigned short psc;   /* 0x30 */
-  unsigned short res12;
-  unsigned short scll;  /* 0x34 */
-  unsigned short res13;
-  unsigned short sclh;  /* 0x38 */
-  unsigned short res14;
-  unsigned short systest; /* 0x3c */
-  unsigned short res15;
-};
+typedef struct i2c_regs 
+{
+  unsigned short I2C_REVNB_LO;	/* AM335X Only */
+  unsigned short I2C_REVNB_HI;	/* AM335X Only */
+  unsigned short I2C_REV;	/* DM37XX Only */
+  unsigned short I2C_IE;	/* DM37XX Only */
+  unsigned short I2C_STAT;	/* DM37XX Only */
+  unsigned short I2C_SYSC;
+  unsigned short I2C_IRQSTATUS_RAW;	/* AM335X Only */
+  unsigned short I2C_IRQSTATUS;	/* AM335X Only */
+  unsigned short I2C_IRQENABLE_SET;	/* AM335X Only */
+  unsigned short I2C_IRQENABLE_CLR;	/* AM335X Only */
+  unsigned short I2C_WE;
+  unsigned short I2C_DMARXENABLE_SET;	/* AM335X Only */
+  unsigned short I2C_DMATXENABLE_SET;	/* AM335X Only */
+  unsigned short I2C_DMARXENABLE_CLR;	/* AM335X Only */
+  unsigned short I2C_DMATXENABLE_CLR;	/* AM335X Only */
+  unsigned short I2C_DMARXWAKE_EN;	/* AM335X Only */
+  unsigned short I2C_DMATXWAKE_EN;	/* AM335X Only */
+  unsigned short I2C_SYSS;
+  unsigned short I2C_BUF;
+  unsigned short I2C_CNT;
+  unsigned short I2C_DATA;
+  unsigned short I2C_CON;
+  unsigned short I2C_OA;	/* AM335X Only */
+  unsigned short I2C_OA0;	/* DM37XX Only */
+  unsigned short I2C_SA;
+  unsigned short I2C_PSC;
+  unsigned short I2C_SCLL;
+  unsigned short I2C_SCLH;
+  unsigned short I2C_SYSTEST;
+  unsigned short I2C_BUFSTAT;
+  unsigned short I2C_OA1;
+  unsigned short I2C_OA2;
+  unsigned short I2C_OA3;
+  unsigned short I2C_ACTOA;
+  unsigned short I2C_SBLOCK;
+} beagle_i2c_regs;
 
 static unsigned short wait_for_pin( void );
 
@@ -215,151 +256,100 @@ static int imw ( unsigned char  chip, unsigned long addr, unsigned char byte );
 static int imd( unsigned char chip, unsigned int addr, unsigned int length );
 
 /**
- * @brief Initializes the I2C module @a i2c.
+ * @name  I2C data structures.
  *
- * Valid @a clock_in_hz values are 100000 and 400000.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_INVALID_ID Invalid @a i2c value.
- * @retval RTEMS_INVALID_CLOCK Invalid @a clock_in_hz value.
+ * @{
  */
-rtems_status_code beagle_i2c_init(
-  volatile beagle_i2c *i2c,
-  unsigned clock_in_hz
+
+typedef struct {
+  bool           is_initialized;
+  rtems_id       irq_sema_id;
+} beagle_i2c_softc_t;
+
+typedef struct {
+  rtems_libi2c_bus_t bus_desc;
+  beagle_i2c_softc_t softc;
+  beagle_i2c_regs *regs;
+  uint32_t i2c_base_addr;
+  int i2c_irq;
+  int i2c_bus_id;
+} beagle_i2c_desc_t;
+
+/** @} */
+
+/* Registers defination for each chip */
+
+static beagle_i2c_regs am335x_i2c_regs = {
+	.I2C_REVNB_LO = AM335X_I2C_REVNB_LO,
+	.I2C_REVNB_HI = AM335X_I2C_REVNB_HI,
+	.I2C_SYSC = AM335X_I2C_SYSC,
+	.I2C_IRQSTATUS_RAW = AM335X_I2C_IRQSTATUS_RAW,
+	.I2C_IRQSTATUS = AM335X_I2C_IRQSTATUS,
+	.I2C_IRQENABLE_SET = AM335X_I2C_IRQENABLE_SET,
+	.I2C_IRQENABLE_CLR = AM335X_I2C_IRQENABLE_CLR,
+	.I2C_WE = AM335X_I2C_WE,
+	.I2C_DMARXENABLE_SET = AM335X_I2C_DMARXENABLE_SET,
+	.I2C_DMATXENABLE_SET = AM335X_I2C_DMATXENABLE_SET,
+	.I2C_DMARXENABLE_CLR = AM335X_I2C_DMARXENABLE_CLR,
+	.I2C_DMATXENABLE_CLR = AM335X_I2C_DMATXENABLE_CLR,
+	.I2C_DMARXWAKE_EN = AM335X_I2C_DMARXWAKE_EN,
+	.I2C_DMATXWAKE_EN = AM335X_I2C_DMATXWAKE_EN,
+	.I2C_SYSS = AM335X_I2C_SYSS,
+	.I2C_BUF = AM335X_I2C_BUF,
+	.I2C_CNT = AM335X_I2C_CNT,
+	.I2C_DATA = AM335X_I2C_DATA,
+	.I2C_CON = AM335X_I2C_CON,
+	.I2C_OA = AM335X_I2C_OA,
+	.I2C_SA = AM335X_I2C_SA,
+	.I2C_PSC = AM335X_I2C_PSC,
+	.I2C_SCLL = AM335X_I2C_SCLL,
+	.I2C_SCLH = AM335X_I2C_SCLH,
+	.I2C_SYSTEST = AM335X_I2C_SYSTEST,
+	.I2C_BUFSTAT = AM335X_I2C_BUFSTAT,
+	.I2C_OA1 = AM335X_I2C_OA1,
+	.I2C_OA2 = AM335X_I2C_OA2,
+	.I2C_OA3 = AM335X_I2C_OA3,
+	.I2C_ACTOA = AM335X_I2C_ACTOA,
+	.I2C_SBLOCK = AM335X_I2C_SBLOCK
+};
+
+
+/**
+ * @name  I2C directives.
+ *
+ * @{
+ * 
+ * For more details read cpukit/libi2c/README_libi2c
+ */
+
+rtems_status_code beagle_i2c_init(rtems_libi2c_bus_t * bushdl);
+
+rtems_status_code beagle_i2c_send_start(rtems_libi2c_bus_t * bushdl);
+
+rtems_status_code beagle_i2c_stop(rtems_libi2c_bus_t * bushdl);
+
+rtems_status_code 
+beagle_i2c_send_addr(rtems_libi2c_bus_t * bushdl, uint32_t addr, int rw);
+
+int beagle_i2c_read_bytes(
+rtems_libi2c_bus_t * bushdl, 
+unsigned char *bytes, 
+int nbytes
 );
 
-/**
- * @brief Resets the I2C module @a i2c.
- */
-void beagle_i2c_reset(volatile beagle_i2c *i2c);
-
-/**
- * @brief Sets the I2C module @a i2c clock.
- *
- * Valid @a clock_in_hz values are 100000 and 400000.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_INVALID_CLOCK Invalid @a clock_in_hz value.
- */
-rtems_status_code beagle_i2c_clock(
-  volatile beagle_i2c *i2c,
-  unsigned clock_in_hz
+int beagle_i2c_write_bytes(
+rtems_libi2c_bus_t * bushdl, 
+unsigned char *bytes, 
+int nbytes
 );
 
-/**
- * @brief Starts a write transaction on the I2C module @a i2c.
- *
- * The address parameter @a addr must not contain the read/write bit.
- *
- * The error status may be delayed to the next
- * beagle_i2c_write_with_optional_stop() due to controller flaws.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_IO_ERROR Received a NACK from the slave.
- */
-rtems_status_code beagle_i2c_write_start(
-  volatile beagle_i2c *i2c,
-  unsigned addr
-);
+int beagle_i2c_ioctl(rtems_libi2c_bus_t * bushdl, int cmd, void *buffer);
 
-/**
- * @brief Writes data via the I2C module @a i2c with optional stop.
- *
- * The error status may be delayed to the next
- * beagle_i2c_write_with_optional_stop() due to controller flaws.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_IO_ERROR Received a NACK from the slave.
- */
-rtems_status_code beagle_i2c_write_with_optional_stop(
-  volatile beagle_i2c *i2c,
-  const uint8_t *out,
-  size_t n,
-  bool stop
-);
+int BSP_i2c_register_drivers(int i2c_bus_number);
 
-/**
- * @brief Starts a read transaction on the I2C module @a i2c.
- *
- * The address parameter @a addr must not contain the read/write bit.
- *
- * The error status may be delayed to the next
- * beagle_i2c_read_with_optional_stop() due to controller flaws.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_IO_ERROR Received a NACK from the slave.
- */
-rtems_status_code beagle_i2c_read_start(
-  volatile beagle_i2c *i2c,
-  unsigned addr
-);
+int BSP_i2c_init(void);
 
-/**
- * @brief Reads data via the I2C module @a i2c with optional stop.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_IO_ERROR Received a NACK from the slave.
- * @retval RTEMS_NOT_IMPLEMENTED Stop is @a false.
- */
-rtems_status_code beagle_i2c_read_with_optional_stop(
-  volatile beagle_i2c *i2c,
-  uint8_t *in,
-  size_t n,
-  bool stop
-);
-
-/**
- * @brief Writes and reads data via the I2C module @a i2c.
- *
- * This will be one bus transaction.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_IO_ERROR Received a NACK from the slave.
- */
-rtems_status_code beagle_i2c_write_and_read(
-  volatile beagle_i2c *i2c,
-  unsigned addr,
-  const uint8_t *out,
-  size_t out_size,
-  uint8_t *in,
-  size_t in_size
-);
-
-/**
- * @brief Writes data via the I2C module @a i2c.
- *
- * This will be one bus transaction.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_IO_ERROR Received a NACK from the slave.
- */
-static inline rtems_status_code beagle_i2c_write(
-  volatile beagle_i2c *i2c,
-  unsigned addr,
-  const uint8_t *out,
-  size_t out_size
-)
-{
-  return beagle_i2c_write_and_read(i2c, addr, out, out_size, NULL, 0);
-}
-
-/**
- * @brief Reads data via the I2C module @a i2c.
- *
- * This will be one bus transaction.
- *
- * @retval RTEMS_SUCCESSFUL Successful operation.
- * @retval RTEMS_IO_ERROR Received a NACK from the slave.
- */
-static inline rtems_status_code beagle_i2c_read(
-  volatile beagle_i2c *i2c,
-  unsigned addr,
-  uint8_t *in,
-  size_t in_size
-)
-{
-  return beagle_i2c_write_and_read(i2c, addr, NULL, 0, in, in_size);
-}
+/** @} */
 
 #ifdef __cplusplus
 }
