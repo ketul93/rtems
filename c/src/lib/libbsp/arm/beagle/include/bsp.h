@@ -96,6 +96,19 @@ read16(uint32_t address)
     return REG16(address);
 }
 
+/* Set a 16 bits value depending on a mask */
+static inline void
+set16(uint32_t address, uint16_t mask, uint16_t value)
+{
+	uint16_t val;
+	val = read16(address);
+	/* clear the bits */
+	val &= ~(mask);
+	/* apply the value using the mask */
+	val |= (value & mask);
+	write16(address, val);
+}
+
 /* Data synchronization barrier */
 static inline void dsb(void)
 {
@@ -184,6 +197,14 @@ typedef struct {
     uint32_t s_tx;
     uint32_t s_txfl;
 } beagle_i2c;
+
+#if IS_AM335X
+#define BEAGLE_MODULE_CLOCK SYSTEM_CLOCK_12
+#endif
+
+#if IS_DM3730
+#define BEAGLE_MODULE_CLOCK SYSTEM_CLOCK_192
+#endif
 
 /* sctlr */
 /* Read System Control Register */
