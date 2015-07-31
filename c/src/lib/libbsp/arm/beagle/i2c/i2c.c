@@ -15,7 +15,6 @@
  */
 
 #include <bsp/i2c.h>
-#include "i2c_init.c"
 
 static const uint32_t i2c_clkcntrl_reg[]= {
 	AM335X_CM_WKUP_I2C0_CLKCTRL, AM335X_CM_PER_I2C1_CLKCTRL,
@@ -238,6 +237,8 @@ int buffer_size
 rtems_status_code beagle_i2c_init(rtems_libi2c_bus_t * bushdl)
 {
   beagle_i2c_softc_t *softc_ptr = &(((beagle_i2c_desc_t *)(bushdl))->softc);
+  /* Enable Clocks */
+  beagle_i2c_clkconf(beagle_i2c_bus_desc->i2c_bus_id);
   rtems_status_code sc = RTEMS_SUCCESSFUL;
 
   if ( softc_ptr->is_initialized) {

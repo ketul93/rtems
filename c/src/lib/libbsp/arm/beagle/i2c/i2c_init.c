@@ -16,40 +16,6 @@
 
 #include <bsp/i2c.h>
 
-static rtems_libi2c_bus_ops_t beagle_i2c_ops = {
-  init:             beagle_i2c_init,
-  send_start:       beagle_i2c_send_start,
-  send_stop:        beagle_i2c_stop,
-  send_addr:        beagle_i2c_send_addr,
-  read_bytes:       beagle_i2c_read_bytes,
-  write_bytes:      beagle_i2c_write_bytes,
-  ioctl:            beagle_i2c_ioctl
-};
-
-static const uint32_t i2c_base_addrs[] = {
-	AM335X_I2C0_BASE, AM335X_I2C1_BASE, AM335X_I2C0_BASE
-};
-
-static const int i2c_irq_num[] = {
-	BEAGLE_I2C0_IRQ , BEAGLE_I2C1_IRQ , BEAGLE_I2C2_IRQ
-};
-
-static beagle_i2c_desc_t beagle_i2c_bus_desc_t = {
-  {
-    ops:			&beagle_i2c_ops,
-    size:			sizeof(beagle_i2c_bus_desc_t)
-  },
-  {
-	is_initialized:	false
-  },
-  &am335x_i2c_regs,
-  AM335X_I2C0_BASE, /* Default I2C[0] bus selected */
-  BEAGLE_I2C0_IRQ, /* Default I2C[0] irq */
-  0 /* Default bus id */
-};
-
-static beagle_i2c_desc_t *beagle_i2c_bus_desc = &beagle_i2c_bus_desc_t;
-
 /* Drivers registration for all the devices 
  * which want access to the I2C bus.
  *
