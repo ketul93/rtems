@@ -26,27 +26,29 @@ static rtems_libi2c_bus_ops_t beagle_i2c_ops = {
   ioctl:            beagle_i2c_ioctl
 };
 
-static const i2c_base_addrs[] = {
+static const uint32_t i2c_base_addrs[] = {
 	AM335X_I2C0_BASE, AM335X_I2C1_BASE, AM335X_I2C0_BASE
 };
 
-static const i2c_irq_num[] = {
+static const int i2c_irq_num[] = {
 	BEAGLE_I2C0_IRQ , BEAGLE_I2C1_IRQ , BEAGLE_I2C2_IRQ
 };
 
-static beagle_i2c_desc_t beagle_i2c_bus_desc = {
+static beagle_i2c_desc_t beagle_i2c_bus_desc_t = {
   {
     ops:			&beagle_i2c_ops,
-    size:			sizeof(beagle_i2c_bus_desc)
+    size:			sizeof(beagle_i2c_bus_desc_t)
   },
   {
 	is_initialized:	false
   },
   &am335x_i2c_regs,
-  i2c_base_addrs[0], /* Default I2C[0] bus selected */
-  i2c_irq_num[0], /* Default I2C[0] irq */
+  AM335X_I2C0_BASE, /* Default I2C[0] bus selected */
+  BEAGLE_I2C0_IRQ, /* Default I2C[0] irq */
   0 /* Default bus id */
 };
+
+static beagle_i2c_desc_t *beagle_i2c_bus_desc = &beagle_i2c_bus_desc_t;
 
 /* Drivers registration for all the devices 
  * which want access to the I2C bus.
@@ -79,7 +81,7 @@ int BSP_i2c_init(void)
   rtems_libi2c_initialize ();
 
   /* Register the I2C bus. */
-  rv = rtems_libi2c_register_bus("/dev/i2c", &(beagle_i2c_bus_desc.bus_desc));
+  rv = rtems_libi2c_register_bus("/dev/i2c", &(beagle_i2c_bus_desc->bus_desc));
 
   if ( rv < 0 ) {
     return -rv;

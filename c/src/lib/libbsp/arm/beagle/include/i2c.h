@@ -32,6 +32,9 @@
 #include <rtems/libi2c.h>
 #include <libcpu/am335x.h>
 
+#include <stdio.h>
+#include <unistd.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -221,40 +224,6 @@ typedef struct i2c_regs
   unsigned short I2C_SBLOCK;
 } beagle_i2c_regs;
 
-static unsigned short wait_for_pin( void );
-
-static void wait_for_bb( void );
-
-static void flush_fifo( void );
-
-void i2c_init( int speed, int slaveadd );
-
-static int i2c_read_byte(
-  unsigned char devaddr,
-  unsigned char regoffset,
-  unsigned char *value
-);
-
-int i2c_write(
-  unsigned char chip,
-  unsigned int addr,
-  int alen,
-  unsigned char *buffer,
-  int len
-);
-
-int i2c_read(
-  unsigned char chip,
-  uint addr,
-  int alen,
-  unsigned char *buffer,
-  int len
-);
-
-static int imw ( unsigned char  chip, unsigned long addr, unsigned char byte );
-
-static int imd( unsigned char chip, unsigned int addr, unsigned int length );
-
 /**
  * @name  I2C data structures.
  *
@@ -270,7 +239,7 @@ typedef struct {
   rtems_libi2c_bus_t bus_desc;
   beagle_i2c_softc_t softc;
   beagle_i2c_regs *regs;
-  uint32_t i2c_base_addr;
+  uint32_t i2c_base_addrs;
   int i2c_irq;
   int i2c_bus_id;
 } beagle_i2c_desc_t;

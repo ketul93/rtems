@@ -112,8 +112,8 @@ libbsp_a_SOURCES += ../../shared/console.c \
         ../../shared/console_control.c
 
 # I2C
-libbsp_a_SOURCES += i2c/i2c.c
 libbsp_a_SOURCES += i2c/i2c_init.c
+libbsp_a_SOURCES += i2c/i2c.c
 
 #RTC
 libbsp_a_SOURCES += rtc.c

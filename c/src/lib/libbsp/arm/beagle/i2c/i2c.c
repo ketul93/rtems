@@ -15,15 +15,48 @@
  */
 
 #include <bsp/i2c.h>
+#include "i2c_init.c"
 
-static const i2c_clkcntrl_reg[]= {
+static const uint32_t i2c_clkcntrl_reg[]= {
 	AM335X_CM_WKUP_I2C0_CLKCTRL, AM335X_CM_PER_I2C1_CLKCTRL,
 	AM335X_CM_PER_I2C2_CLKCTRL
-} 
+}; 
 
 static inline uint32_t get_reg_addr(uint32_t offset)
 {
-  return (beagle_i2c_bus_desc->i2c_base_addr + offset);
+  return ((beagle_i2c_bus_desc->i2c_base_addrs) + offset);
+}
+
+static inline uint16_t beagle_i2c_read_status(void){
+  
+  return (read16(get_reg_addr(beagle_i2c_bus_desc->regs->I2C_IRQSTATUS_RAW)));
+}
+
+static inline void beagle_i2c_write_status(uint16_t mask){
+
+  /* Writing a 1 to IRQSTATUS will clear it to 0, that is, clear the IRQ */
+  write16(get_reg_addr(beagle_i2c_bus_desc->regs->I2C_IRQSTATUS), mask);
+}
+
+static uint16_t beagle_i2c_poll(uint16_t mask){
+
+  uint16_t status;
+  unsigned int msec = 0;
+
+  /* poll for up to 1 s */
+  
+  do {
+    status = beagle_i2c_read_status();
+    if ((status & mask) != 0) {
+      return status;
+    }
+    usleep(1000);
+    msec++;
+ 
+    } while (msec < 1000);
+ 
+  /* timeout reached, abort */
+  return status;      
 }
 
 static void intr_handler(void *arg){
@@ -79,7 +112,7 @@ static inline void beagle_i2c_clkconfg(int i2c_bus_number){
 
 static void beagle_i2c_flush(void){
   
-  int checkpoints,
+  int checkpoints;
   uint16_t status;
 
   for (checkpoints = 0; checkpoints < 1000; checkpoints++){
@@ -100,38 +133,6 @@ static void beagle_i2c_flush(void){
   	}
 
   }
-}
-
-static uint16_t beagle_i2c_poll(uint16_t mask){
-
-  uint16_t status;
-  unsigned int msec = 0;
-
-  /* poll for up to 1 s */
-  
-  do {
-    status = beagle_i2c_read_status();
-    if ((status & mask) != 0) {
-      return status;
-    }
-    usleep(1000);
-    msec++;
- 
-    } while (msec < 1000);
- 
-  /* timeout reached, abort */
-  return status;      
-}
-
-static inline uint16_t beagle_i2c_read_status(void){
-  
-  return (read16(get_reg_addr(beagle_i2c_bus_desc->regs->I2C_IRQSTATUS_RAW)));
-}
-
-static inline void beagle_i2c_write_status(uint16_t mask){
-
-  /* Writing a 1 to IRQSTATUS will clear it to 0, that is, clear the IRQ */
-  write16(get_reg_addr(beagle_i2c_bus_desc->regs->I2C_IRQSTATUS), mask);
 }
 
 /**
@@ -189,7 +190,7 @@ int buffer_size
   	}
   	if ( rd_buf == NULL ) {
 
-  	  write16(get_reg_addr(beagle_i2c_bus_desc->regs->regs->I2C_DATA)),
+  	  write16(get_reg_addr(beagle_i2c_bus_desc->regs->I2C_DATA),
   	  *(uint8_t *)wr_buf);
   	} 
   	else {
@@ -213,7 +214,7 @@ int buffer_size
 
   /* Wait for operation to complete(polling access ready bit) */
   poll_mask = I2C_ARDY;
-  status = omap_i2c_poll(poll_mask);
+  status = beagle_i2c_poll(poll_mask);
   if ((status & poll_mask) == 0){
   	printf("I/O operation never finished\n");
   	return -1;
@@ -303,7 +304,7 @@ rtems_status_code beagle_i2c_init(rtems_libi2c_bus_t * bushdl)
   /* According to u-boot, these are needed even if just using by
    * polling method (i.e. non-interrupt driver programming).
    */
-  intr_handler();
+  intr_handler(bushdl);
   }
   return sc;
 
