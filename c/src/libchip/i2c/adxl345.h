@@ -1,4 +1,4 @@
-include <rtems.h>
+#include <rtems.h>
 #include <rtems/libi2c.h>
 
 #include <rtems/libio.h>

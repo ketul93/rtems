@@ -29,6 +29,7 @@
 #define ADXL345_RA_FIFO_STATUS 0x39
 
 #include <libchip/adxl345.h>
+#include <stdio.h>
 
 static rtems_libi2c_tfr_mode_t tfr_mode = 
 {
@@ -101,7 +102,7 @@ static rtems_status_code i2c_adxl345_write_register(rtems_device_minor_number mi
   return sc;
 }
 
-static rtems_status_code i2c_adxl345_read_register(rtems_device_minor_number minor, int reg, uint8_t* reg_content)
+static rtems_status_code i2c_adxl345_read_register(rtems_device_minor_number minor, int reg, int* reg_content)
 {
   rtems_status_code sc = RTEMS_SUCCESSFUL;
 
@@ -172,7 +173,7 @@ static rtems_status_code i2c_adxl345_read_register(rtems_device_minor_number min
   return sc;
 }
 
-static rtems_status_code i2c_adxl345_set_register(rtems_device_minor_number minor, int reg,uint8_t val)
+static rtems_status_code i2c_adxl345_set_register(rtems_device_minor_number minor, uint8_t reg,uint8_t val)
 {
   rtems_status_code sc;
   uint8_t reg_content;
@@ -210,8 +211,7 @@ static rtems_status_code i2c_adxl345_set_range(rtems_device_minor_number minor, 
 static rtems_status_code i2c_adxl345_getAxes(rtems_device_minor_number minor, const char axis)
 {
   rtems_status_code sc;
-  int byte0,byte1;
-  float axis_val;
+  int byte0,byte1,axis_val;
 
   switch (axis)
   {
@@ -244,15 +244,15 @@ static rtems_status_code i2c_adxl345_getAxes(rtems_device_minor_number minor, co
 	  sc = RTEMS_INVALID_NUMBER;
   }
 
-  axis_val = byte0 | (byte1 << 8)
-  if (axis_val & (1 << 16 - 1))
+  axis_val = byte0 | (byte1 << 8);
+  if (axis_val & ((1 << 16) - 1))
   {
   	axis_val = axis_val - (1 << 16);
   }
 
   axis_val = axis_val * ADXL345_SCALE_MULTIPLIER ;
 
-  printf("  %c = %.3f\n",axis,axis_val);
+  printf("  %c = %.3d\n",axis,axis_val);
 
   return sc;
 } 
@@ -261,12 +261,10 @@ rtems_status_code i2c_adxl345_ioctl(rtems_device_major_number major, rtems_devic
 {  
   rtems_libio_ioctl_args_t *args = arg;
   rtems_status_code sc = RTEMS_SUCCESSFUL;
-  int pin, cmd;
+  int cmd;
 
   int rv = 0;
    
-  uint8_t reg_content;
-
   cmd = (int)(args->command);
 
   switch ( cmd ) 
@@ -288,17 +286,17 @@ rtems_status_code i2c_adxl345_ioctl(rtems_device_major_number major, rtems_devic
 
     case ADXL345_READ_XAXIS:
 
-      sc = i2c_adxl345_getAxes(minor, X);
+      sc = i2c_adxl345_getAxes(minor, 'X');
       break;
       
     case ADXL345_READ_YAXIS:
 
-      sc = i2c_adxl345_getAxes(minor, Y);
+      sc = i2c_adxl345_getAxes(minor, 'Y');
       break;
 
     case ADXL345_READ_ZAXIS:
 
-      sc = i2c_adxl345_getAxes(minor, Z);
+      sc = i2c_adxl345_getAxes(minor, 'Z');
       break;
     
     default:
