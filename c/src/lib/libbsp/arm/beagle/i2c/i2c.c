@@ -202,7 +202,7 @@ int buffer_size
   	/* clear the read/write ready flag */
 	beagle_i2c_write_status(poll_mask);
 
-  	}
+  }
 
   status = beagle_i2c_read_status();
   if ((status & I2C_NACK) != 0){
@@ -281,7 +281,7 @@ rtems_status_code beagle_i2c_init(rtems_libi2c_bus_t * bushdl)
 
   /* Now bring I2C module out of reset */
   set16(get_reg_addr(beagle_i2c_bus_desc->regs->I2C_CON),
-    I2C_CON_EN, I2C_CON_EN);
+   I2C_CON_EN, I2C_CON_EN);
   udelay(50000);
   
   /* If the access to the bus is configured to be interrupt-driven. */
@@ -436,5 +436,5 @@ int nbytes
  */
 int beagle_i2c_ioctl(rtems_libi2c_bus_t * bushdl, int cmd, void *arg)
 {
-	return 0;
+  return 0;
 }
