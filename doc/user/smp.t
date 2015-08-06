@@ -237,17 +237,70 @@ In general, applications must use proper operating system provided mutual
 exclusion mechanisms to ensure correct behavior. This primarily means
 the use of binary semaphores or mutexes to implement critical sections.
 
-@subsubsection Disable Interrupts
+@subsubsection Disable Interrupts and Interrupt Locks
 
-Again on a uniprocessor system, there is only a single processor which
-logically executes a single task and takes interrupts. On an SMP system,
-each processor may take an interrupt. When the application disables
-interrupts, it generally does so by altering a processor register to
-mask interrupts and later to re-enable them. On a uniprocessor system,
-changing this in the single processor is sufficient. However, on an SMP
-system, this register in @strong{ALL} processors must be changed. There
-are no comparable capabilities in an SMP system to disable all interrupts
-across all processors.
+A low overhead means to ensure mutual exclusion in uni-processor configurations
+is to disable interrupts around a critical section.  This is commonly used in
+device driver code and throughout the operating system core.  On SMP
+configurations, however, disabling the interrupts on one processor has no
+effect on other processors.  So, this is insufficient to ensure system wide
+mutual exclusion.  The macros
+@itemize @bullet
+@item @code{rtems_interrupt_disable()},
+@item @code{rtems_interrupt_enable()}, and
+@item @code{rtems_interrupt_flush()}
+@end itemize
+are disabled on SMP configurations and its use will lead to compiler warnings
+and linker errors.  In the unlikely case that interrupts must be disabled on
+the current processor, then the
+@itemize @bullet
+@item @code{rtems_interrupt_local_disable()}, and
+@item @code{rtems_interrupt_local_enable()}
+@end itemize
+macros are now available in all configurations.
+
+Since disabling of interrupts is not enough to ensure system wide mutual
+exclusion on SMP, a new low-level synchronization primitive was added - the
+interrupt locks.  They are a simple API layer on top of the SMP locks used for
+low-level synchronization in the operating system core.  Currently they are
+implemented as a ticket lock.  On uni-processor configurations they degenerate
+to simple interrupt disable/enable sequences.  It is disallowed to acquire a
+single interrupt lock in a nested way.  This will result in an infinite loop
+with interrupts disabled.  While converting legacy code to interrupt locks care
+must be taken to avoid this situation.
+
+@example
+@group
+void legacy_code_with_interrupt_disable_enable( void )
+@{
+  rtems_interrupt_level level;
+
+  rtems_interrupt_disable( level );
+  /* Some critical stuff */
+  rtems_interrupt_enable( level );
+@}
+
+RTEMS_INTERRUPT_LOCK_DEFINE( static, lock, "Name" )
+
+void smp_ready_code_with_interrupt_lock( void )
+@{
+  rtems_interrupt_lock_context lock_context;
+
+  rtems_interrupt_lock_acquire( &lock, &lock_context );
+  /* Some critical stuff */
+  rtems_interrupt_lock_release( &lock, &lock_context );
+@}
+@end group
+@end example
+
+The @code{rtems_interrupt_lock} structure is empty on uni-processor
+configurations.  Empty structures have a different size in C
+(implementation-defined, zero in case of GCC) and C++ (implementation-defined
+non-zero value, one in case of GCC).  Thus the
+@code{RTEMS_INTERRUPT_LOCK_DECLARE()}, @code{RTEMS_INTERRUPT_LOCK_DEFINE()},
+@code{RTEMS_INTERRUPT_LOCK_MEMBER()}, and
+@code{RTEMS_INTERRUPT_LOCK_REFERENCE()} macros are provided to ensure ABI
+compatibility.
 
 @subsubsection Highest Priority Task Assumption
 
@@ -307,16 +360,85 @@ The Classic API provides three directives to support per task variables. These a
 @item @code{@value{DIRPREFIX}task_variable_delete} - Remove per task variable
 @end itemize
 
-As task variables are unsafe for use on SMP systems, the use of these
-services should be eliminated in all software that is to be used in
-an SMP environment. It is recommended that the application developer
-consider the use of POSIX Keys or Thread Local Storage (TLS). POSIX Keys
-are not enabled in all RTEMS configurations.
+As task variables are unsafe for use on SMP systems, the use of these services
+must be eliminated in all software that is to be used in an SMP environment.
+The task variables API is disabled on SMP. Its use will lead to compile-time
+and link-time errors. It is recommended that the application developer consider
+the use of POSIX Keys or Thread Local Storage (TLS). POSIX Keys are available
+in all RTEMS configurations.  For the availablity of TLS on a particular
+architecture please consult the @cite{RTEMS CPU Architecture Supplement}.
 
-@b{STATUS}: As of March 2014, some support services in the
-@code{rtems/cpukit} use per task variables. When these uses are
-eliminated, the per task variable directives will be disabled when
-building RTEMS in SMP configuration.
+The only remaining user of task variables in the RTEMS code base is the Ada
+support.  So basically Ada is not available on RTEMS SMP.
+
+@subsection Thread Dispatch Details
+
+This section gives background information to developers interested in the
+interrupt latencies introduced by thread dispatching.  A thread dispatch
+consists of all work which must be done to stop the currently executing thread
+on a processor and hand over this processor to an heir thread.
+
+On SMP systems, scheduling decisions on one processor must be propagated to
+other processors through inter-processor interrupts.  So, a thread dispatch
+which must be carried out on another processor happens not instantaneous.  Thus
+several thread dispatch requests might be in the air and it is possible that
+some of them may be out of date before the corresponding processor has time to
+deal with them.  The thread dispatch mechanism uses three per-processor
+variables,
+@itemize @bullet
+@item the executing thread,
+@item the heir thread, and
+@item an boolean flag indicating if a thread dispatch is necessary or not.
+@end itemize
+Updates of the heir thread and the thread dispatch necessary indicator are
+synchronized via explicit memory barriers without the use of locks.  A thread
+can be an heir thread on at most one processor in the system.  The thread context
+is protected by a TTAS lock embedded in the context to ensure that it is used
+on at most one processor at a time.  The thread post-switch actions use a
+per-processor lock.  This implementation turned out to be quite efficient and
+no lock contention was observed in the test suite.
+
+The current implementation of thread dispatching has some implications with
+respect to the interrupt latency.  It is crucial to preserve the system
+invariant that a thread can execute on at most one processor in the system at a
+time.  This is accomplished with a boolean indicator in the thread context.
+The processor architecture specific context switch code will mark that a thread
+context is no longer executing and waits that the heir context stopped
+execution before it restores the heir context and resumes execution of the heir
+thread (the boolean indicator is basically a TTAS lock).  So, there is one
+point in time in which a processor is without a thread.  This is essential to
+avoid cyclic dependencies in case multiple threads migrate at once.  Otherwise
+some supervising entity is necessary to prevent deadlocks.  Such a global
+supervisor would lead to scalability problems so this approach is not used.
+Currently the context switch is performed with interrupts disabled.  Thus in
+case the heir thread is currently executing on another processor, the time of
+disabled interrupts is prolonged since one processor has to wait for another
+processor to make progress.
+
+It is difficult to avoid this issue with the interrupt latency since interrupts
+normally store the context of the interrupted thread on its stack.  In case a
+thread is marked as not executing, we must not use its thread stack to store
+such an interrupt context.  We cannot use the heir stack before it stopped
+execution on another processor.  If we enable interrupts during this
+transition, then we have to provide an alternative thread independent stack for
+interrupts in this time frame.  This issue needs further investigation.
+
+The problematic situation occurs in case we have a thread which executes with
+thread dispatching disabled and should execute on another processor (e.g. it is
+an heir thread on another processor).  In this case the interrupts on this
+other processor are disabled until the thread enables thread dispatching and
+starts the thread dispatch sequence.  The scheduler (an exception is the
+scheduler with thread processor affinity support) tries to avoid such a
+situation and checks if a new scheduled thread already executes on a processor.
+In case the assigned processor differs from the processor on which the thread
+already executes and this processor is a member of the processor set managed by
+this scheduler instance, it will reassign the processors to keep the already
+executing thread in place.  Therefore normal scheduler requests will not lead
+to such a situation.  Explicit thread migration requests, however, can lead to
+this situation.  Explicit thread migrations may occur due to the scheduler
+helping protocol or explicit scheduler instance changes.  The situation can
+also be provoked by interrupts which suspend and resume threads multiple times
+and produce stale asynchronous thread dispatch requests in the system.
 
 @c
 @c

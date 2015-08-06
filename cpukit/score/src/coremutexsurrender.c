@@ -179,13 +179,19 @@ CORE_mutex_Status _CORE_mutex_Surrender(
    *  transfer the mutex to that thread.
    */
   if ( ( the_thread = _Thread_queue_First_locked( &the_mutex->Wait_queue ) ) ) {
+    bool unblock;
+
     /*
      * We must extract the thread now since this will restore its default
      * thread lock.  This is necessary to avoid a deadlock in the
      * _Thread_Change_priority() below due to a recursive thread queue lock
      * acquire.
      */
-    _Thread_queue_Extract_locked( &the_mutex->Wait_queue, the_thread );
+    unblock = _Thread_queue_Extract_locked(
+      &the_mutex->Wait_queue.Queue,
+      the_mutex->Wait_queue.operations,
+      the_thread
+    );
 
 #if defined(RTEMS_MULTIPROCESSING)
     _Thread_Dispatch_disable();
@@ -216,7 +222,8 @@ CORE_mutex_Status _CORE_mutex_Surrender(
     }
 
     _Thread_queue_Unblock_critical(
-      &the_mutex->Wait_queue,
+      unblock,
+      &the_mutex->Wait_queue.Queue,
       the_thread,
       lock_context
     );
