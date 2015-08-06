@@ -41,30 +41,30 @@ rtems_task Init(
   
   /* Open the adxl345 device file */
   fd = open("/dev/i2c.adxl345", O_RDWR);
-  //RTEMS_CHECK_RV(rv, "Open /dev/i2c.adxl345");
+  RTEMS_CHECK_RV(rv, "Open /dev/i2c.adxl345");
   
   /* Set the adxl345 BW Rate */
-  rv = ioctl(fd, ADXL345_ADDR, ADXL345_CONF_BWRATE);
-  //RTEMS_CHECK_RV(rv, "adxl345 BW rate is set");
+  rv = ioctl(fd, ADXL345_CONF_BWRATE);
+  RTEMS_CHECK_RV(rv, "adxl345 BW rate is set");
 
   /* Powering up the module for measurement */
-  rv = ioctl(fd, ADXL345_ADDR, ADXL345_CONF_MEASUREMENT);
-  //RTEMS_CHECK_RV(rv, "adxl345 is ready for measurement");
+  rv = ioctl(fd, ADXL345_CONF_MEASUREMENT);
+  RTEMS_CHECK_RV(rv, "adxl345 is ready for measurement");
 
   /* Set the adxl345 Range for measurement */
-  rv = ioctl(fd, ADXL345_ADDR, ADXL345_CONF_RANGE);
-  //RTEMS_CHECK_RV(rv, "adxl345 Range configuration");
+  rv = ioctl(fd, ADXL345_CONF_RANGE);
+  RTEMS_CHECK_RV(rv, "adxl345 Range configuration");
 
   /* Now getting data from accelerometer from the all axis */
   while(1)
   {
-  rv = ioctl(fd, ADXL345_ADDR, ADXL345_READ_XAXIS);
-  rv = ioctl(fd, ADXL345_ADDR, ADXL345_READ_YAXIS);
-  rv = ioctl(fd, ADXL345_ADDR, ADXL345_READ_ZAXIS);
-  //RTEMS_CHECK_RV(rv, "All axis data fetched successfilly");
+  rv = ioctl(fd, ADXL345_READ_XAXIS);
+  rv = ioctl(fd, ADXL345_READ_YAXIS);
+  rv = ioctl(fd, ADXL345_READ_ZAXIS);
+  RTEMS_CHECK_RV(rv, "All axis data fetched successfilly");
 
   rv = close(fd);
-  //RTEMS_CHECK_RV(rv, "Close /dev/i2c.adxl345");
+  RTEMS_CHECK_RV(rv, "Close /dev/i2c.adxl345");
 
   rtems_test_end ();
   exit ( 0 );
