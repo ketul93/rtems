@@ -241,7 +241,7 @@
     /*  DMTimer7 Registers */
 
 /* General-purpose timer registers
-   AM335X non 1MS timers have different offsets */
+   AM335x non 1MS timers have different offsets */
 #define AM335X_TIMER_TIDR             0x000
     /* IP revision code */
 #define AM335X_TIMER_TIOCP_CFG        0x010
