@@ -1250,11 +1250,11 @@ rtems_status_code rtems_gpio_clear(uint32_t pin_number)
   return sc;
 }
 
-uint8_t rtems_gpio_get_value(uint32_t pin_number)
+uint32_t rtems_gpio_get_value(uint32_t pin_number)
 {
   uint32_t bank;
   uint32_t pin;
-  int rv;
+  uint32_t rv;
 
   if ( pin_number < 0 || pin_number >= BSP_GPIO_PIN_COUNT ) {
     return -1;

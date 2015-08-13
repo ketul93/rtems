@@ -42,10 +42,10 @@ static const rtems_vector_number gpio_bank_vector[] =
   	AM335X_INT_GPIOINT3A };
 
 /* Macro for the gpio pin not having control module offset mapping */
-#define CONF_NOT_DEFINED 0x00
+#define CONF_NOT_DEFINED 0x00000000
 
 /* Mapping of gpio pin nuber to the  Control module mapped register offset */
-static const uint32_t gpio_pad_conf [GPIO_BANK_COUNT][BSP_GPIO_PINS_PER_BANK] =
+static const uint32_t gpio_pad_conf[GPIO_BANK_COUNT][BSP_GPIO_PINS_PER_BANK] =
 {
   /* GPIO Module 0 */
   { CONF_NOT_DEFINED,             /* GPIO0[0] */
@@ -172,25 +172,16 @@ static const uint32_t gpio_pad_conf [GPIO_BANK_COUNT][BSP_GPIO_PINS_PER_BANK] =
 uint32_t static inline bbb_conf_reg(uint32_t bank, uint32_t pin)
 {
   /* Asserts if invalid pin is supplied */
-  assert(gpio_pad_conf[bank][pin] != CONF_NOT_DEFINED);
-
+  printk("Pad config offset %d\n", gpio_pad_conf[bank][pin]);
+  printk("Pin no:- %d and Bank no:- %d\n",pin,bank );
+  
   return (AM335X_PADCONF_BASE + gpio_pad_conf[bank][pin]);
 }
 
 /* Get the value of Base Register + Offset */
 uint32_t static inline bbb_reg(uint32_t bank, uint32_t reg)
 {
-  return REG(gpio_bank_addrs[bank] + reg);
-}
-
-/* Waits a number of CPU cycles. */
-static void arm_delay(uint8_t cycles)
-{
-  uint8_t i;
-
-  for ( i = 0; i < cycles; ++i ) {
-    asm volatile("nop");
-  }
+  return (gpio_bank_addrs[bank] + reg);
 }
 
 static rtems_status_code bbb_select_pin_function(
@@ -201,8 +192,7 @@ static rtems_status_code bbb_select_pin_function(
 
   if ( type == BBB_DIGITAL_IN ) {
     mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_OE), BIT(pin));
-  }
-  else {
+  } else {
     mmio_clear((gpio_bank_addrs[bank] + AM335X_GPIO_OE), BIT(pin));
   }
 
@@ -243,9 +233,9 @@ rtems_status_code rtems_gpio_bsp_clear(uint32_t bank, uint32_t pin)
   return RTEMS_SUCCESSFUL;
 }
 
-uint8_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin)
+uint32_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin)
 {
-  return (bbb_reg(bank, AM335X_GPIO_DATAIN) & BIT(pin));
+  return (mmio_read(bbb_reg(bank, AM335X_GPIO_DATAIN)) & BIT(pin));
 }
 
 rtems_status_code rtems_gpio_bsp_select_input(
@@ -279,6 +269,12 @@ rtems_status_code rtems_gpio_bsp_set_resistor_mode(
   rtems_gpio_pull_mode mode
 ) {
 
+  /* If the target pin doesn't have pad config offset
+   * (pin having only output capability) 
+   * than silently exists. */
+  if ((uint32_t) (gpio_pad_conf[bank][pin]) == CONF_NOT_DEFINED) {
+    return RTEMS_SUCCESSFUL;
+  }
   /* Enable Pull Up/Down bit and setting Mux Mode 7 */
   mmio_set(bbb_conf_reg(bank, pin), (BBB_PUDEN | BBB_MUXMODE(7)));
 
@@ -317,7 +313,7 @@ uint32_t rtems_gpio_bsp_interrupt_line(rtems_vector_number vector)
   }
 
   /* Retrieve the interrupt event status. */
-  event_status = bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0);
+  event_status = mmio_read (bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0));
 
   /* Clear the interrupt line. */
   mmio_write(
@@ -371,7 +367,8 @@ rtems_status_code rtems_bsp_enable_interrupt(
    * This period is required to clean the synchronization edge/
    * level detection pipeline
    */
-  arm_delay(5);
+  asm volatile("nop"); asm volatile("nop"); asm volatile("nop");
+  asm volatile("nop"); asm volatile("nop");
 
   return RTEMS_SUCCESSFUL;
 }
@@ -425,6 +422,13 @@ rtems_status_code rtems_bsp_disable_interrupt(
       return RTEMS_UNSATISFIED;
   }
 
+  /* The detection starts after 5 clock cycles as per AM335X TRM
+   * This period is required to clean the synchronization edge/
+   * level detection pipeline
+   */
+  asm volatile("nop"); asm volatile("nop"); asm volatile("nop");
+  asm volatile("nop"); asm volatile("nop");
+
   return RTEMS_SUCCESSFUL;
 }
 
@@ -444,11 +448,9 @@ rtems_status_code rtems_gpio_bsp_multi_select(
   for ( i = 0; i < pin_count; ++i ) {
     if ( pins[i].function == DIGITAL_INPUT ) {
       select_register |= BIT(pins[i].pin_number);
-    }
-    else if ( pins[i].function == DIGITAL_OUTPUT ) {
+    } else if ( pins[i].function == DIGITAL_OUTPUT ) {
       select_register &= ~BIT(pins[i].pin_number);
-    }
-    else { /* BSP_SPECIFIC function. */
+    } else { /* BSP_SPECIFIC function. */
       return RTEMS_NOT_DEFINED;
     }
   }

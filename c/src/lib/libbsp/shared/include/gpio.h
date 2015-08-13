@@ -444,7 +444,7 @@ extern rtems_status_code rtems_gpio_clear(uint32_t pin_number);
  *         logical value.
  * @retval -1 Pin number is invalid, or not a digital input pin.
  */
-extern uint8_t rtems_gpio_get_value(uint32_t pin_number);
+extern uint32_t rtems_gpio_get_value(uint32_t pin_number);
 
 /**
  * @brief Requests multiple GPIO pin configurations. If the BSP provides
@@ -806,7 +806,7 @@ extern rtems_status_code rtems_gpio_bsp_clear(uint32_t bank, uint32_t pin);
  *         logical value.
  * @retval -1 Could not read the pin level.
  */
-extern uint8_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin);
+extern uint32_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin);
 
 /**
  * @brief Assigns the digital input function to the given pin.
