@@ -20,12 +20,6 @@
  * look at libbbsp/shared/include/gpio.h
  */
 
-#if IS_AM335X
-
-/* Currently these definitions are for BeagleBone Black board only
- * Later on Beagle-xM board support can be added in this code.
- * After support gets added if condition should be removed
- */
 #include <bsp/beagleboneblack.h>
 #include <bsp/irq-generic.h>
 #include <bsp/gpio.h>
@@ -34,6 +28,13 @@
 
 #include <assert.h>
 #include <stdlib.h>
+
+
+/* Currently these definitions are for BeagleBone Black board only
+ * Later on Beagle-xM board support can be added in this code.
+ * After support gets added if condition should be removed
+ */
+#if IS_AM335X
 
 static const uint32_t gpio_bank_addrs[] = 
   { AM335X_GPIO0_BASE,
@@ -235,7 +236,7 @@ rtems_status_code rtems_gpio_bsp_clear(uint32_t bank, uint32_t pin)
   return RTEMS_SUCCESSFUL;
 }
 
-uint8_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin)
+uint32_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin)
 {
   return (mmio_read(bbb_reg(bank, AM335X_GPIO_DATAIN)) & BIT(pin));
 }

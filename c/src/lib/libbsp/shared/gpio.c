@@ -1250,7 +1250,7 @@ rtems_status_code rtems_gpio_clear(uint32_t pin_number)
   return sc;
 }
 
-uint32_t rtems_gpio_get_value(uint32_t pin_number)
+uint8_t rtems_gpio_get_value(uint32_t pin_number)
 {
   uint32_t bank;
   uint32_t pin;

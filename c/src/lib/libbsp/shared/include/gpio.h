@@ -444,7 +444,7 @@ extern rtems_status_code rtems_gpio_clear(uint32_t pin_number);
  *         logical value.
  * @retval -1 Pin number is invalid, or not a digital input pin.
  */
-extern uint32_t rtems_gpio_get_value(uint32_t pin_number);
+extern uint8_t rtems_gpio_get_value(uint32_t pin_number);
 
 /**
  * @brief Requests multiple GPIO pin configurations. If the BSP provides
