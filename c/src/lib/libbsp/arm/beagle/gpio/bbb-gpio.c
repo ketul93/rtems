@@ -20,6 +20,12 @@
  * look at libbbsp/shared/include/gpio.h
  */
 
+#if IS_AM335X
+
+/* Currently these definitions are for BeagleBone Black board only
+ * Later on Beagle-xM board support can be added in this code.
+ * After support gets added if condition should be removed
+ */
 #include <bsp/beagleboneblack.h>
 #include <bsp/irq-generic.h>
 #include <bsp/gpio.h>
@@ -171,10 +177,6 @@ static const uint32_t gpio_pad_conf[GPIO_BANK_COUNT][BSP_GPIO_PINS_PER_BANK] =
 /* Get the address of Base Register + Offset for pad config */
 uint32_t static inline bbb_conf_reg(uint32_t bank, uint32_t pin)
 {
-  /* Asserts if invalid pin is supplied */
-  printk("Pad config offset %d\n", gpio_pad_conf[bank][pin]);
-  printk("Pin no:- %d and Bank no:- %d\n",pin,bank );
-  
   return (AM335X_PADCONF_BASE + gpio_pad_conf[bank][pin]);
 }
 
@@ -233,7 +235,7 @@ rtems_status_code rtems_gpio_bsp_clear(uint32_t bank, uint32_t pin)
   return RTEMS_SUCCESSFUL;
 }
 
-uint32_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin)
+uint8_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin)
 {
   return (mmio_read(bbb_reg(bank, AM335X_GPIO_DATAIN)) & BIT(pin));
 }
@@ -468,3 +470,5 @@ rtems_status_code rtems_gpio_bsp_specific_group_operation(
 ) {
   return RTEMS_NOT_DEFINED;
 }
+
+#endif /* IS_AM335X */

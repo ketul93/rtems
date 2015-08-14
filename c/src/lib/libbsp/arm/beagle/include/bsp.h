@@ -176,6 +176,11 @@ static inline void flush_data_cache(void)
 #define BSP_GPIO_PINS_PER_BANK 32
 #endif
 
+#if IS_DM3730
+#define BSP_GPIO_PIN_COUNT 192
+#define BSP_GPIO_PINS_PER_BANK 32
+#endif
+
 /* i2c stuff */
 typedef struct {
     uint32_t rx_or_tx;
