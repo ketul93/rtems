@@ -316,11 +316,11 @@ uint32_t rtems_gpio_bsp_interrupt_line(rtems_vector_number vector)
   }
 
   /* Retrieve the interrupt event status. */
-  event_status = mmio_read (bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0));
+  event_status = mmio_read(bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0));
 
   /* Clear the interrupt line. */
   mmio_write(
-    (gpio_bank_addrs[bank_nr] + AM335X_GPIO_IRQSTATUS_0), event_status);
+    (bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0)), event_status);
   
   return event_status;
 }
@@ -330,6 +330,10 @@ rtems_status_code rtems_bsp_enable_interrupt(
   uint32_t pin,
   rtems_gpio_interrupt interrupt
 ) {
+
+  /* Enable IRQ generation for the specific pin */
+  mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_IRQSTATUS_SET_0), BIT(pin));
+  printk("interrupt is Enabled for GPIO%d_%d\n", bank, pin);
   switch ( interrupt ) {
     case FALLING_EDGE:
       /* Enables asynchronous falling edge detection. */
@@ -381,6 +385,10 @@ rtems_status_code rtems_bsp_disable_interrupt(
   uint32_t pin,
   rtems_gpio_interrupt interrupt
 ) {
+
+  /* Clear IRQ generation for the specific pin */
+  mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_IRQSTATUS_CLR_0), BIT(pin));
+
   switch ( interrupt ) {
     case FALLING_EDGE:
       /* Disables asynchronous falling edge detection. */
@@ -473,3 +481,119 @@ rtems_status_code rtems_gpio_bsp_specific_group_operation(
 }
 
 #endif /* IS_AM335X */
+
+/* For support of BeagleboardxM */
+#if IS_DM3730
+
+/* Currently this section is just to satisfy
+ * GPIO API and to make the build successful.
+ * Later on support can be added here.
+ */
+
+rtems_status_code rtems_gpio_bsp_multi_set(uint32_t bank, uint32_t bitmask)
+{
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_gpio_bsp_multi_clear(uint32_t bank, uint32_t bitmask)
+{
+  return RTEMS_UNSATISFIED;
+}
+
+uint32_t rtems_gpio_bsp_multi_read(uint32_t bank, uint32_t bitmask)
+{
+  return -1;
+}
+
+rtems_status_code rtems_gpio_bsp_set(uint32_t bank, uint32_t pin)
+{
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_gpio_bsp_clear(uint32_t bank, uint32_t pin)
+{
+  return RTEMS_UNSATISFIED;
+}
+
+uint32_t rtems_gpio_bsp_get_value(uint32_t bank, uint32_t pin)
+{
+  return -1;
+}
+
+rtems_status_code rtems_gpio_bsp_select_input(
+  uint32_t bank,
+  uint32_t pin,
+  void *bsp_specific
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_gpio_bsp_select_output(
+  uint32_t bank,
+  uint32_t pin,
+  void *bsp_specific
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_bsp_select_specific_io(
+  uint32_t bank,
+  uint32_t pin,
+  uint32_t function,
+  void *pin_data
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_gpio_bsp_set_resistor_mode(
+  uint32_t bank,
+  uint32_t pin,
+  rtems_gpio_pull_mode mode
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_vector_number rtems_gpio_bsp_get_vector(uint32_t bank)
+{
+  return -1;
+}
+
+uint32_t rtems_gpio_bsp_interrupt_line(rtems_vector_number vector)
+{
+  return -1;
+}
+
+rtems_status_code rtems_bsp_enable_interrupt(
+  uint32_t bank,
+  uint32_t pin,
+  rtems_gpio_interrupt interrupt
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_bsp_disable_interrupt(
+  uint32_t bank,
+  uint32_t pin,
+  rtems_gpio_interrupt interrupt
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_gpio_bsp_multi_select(
+  rtems_gpio_multiple_pin_select *pins,
+  uint32_t pin_count,
+  uint32_t select_bank
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code rtems_gpio_bsp_specific_group_operation(
+  uint32_t bank,
+  uint32_t *pins,
+  uint32_t pin_count,
+  void *arg
+) {
+  return RTEMS_UNSATISFIED;
+}
+
+#endif /* IS_DM3730 */
