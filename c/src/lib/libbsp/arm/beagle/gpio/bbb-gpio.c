@@ -330,10 +330,13 @@ rtems_status_code rtems_bsp_enable_interrupt(
   uint32_t pin,
   rtems_gpio_interrupt interrupt
 ) {
+  printk("Value of AM335X_GPIO_IRQSTATUS_SET_0 %X before\n", REG(gpio_bank_addrs[bank] + AM335X_GPIO_IRQSTATUS_SET_0));
 
   /* Enable IRQ generation for the specific pin */
   mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_IRQSTATUS_SET_0), BIT(pin));
-  printk("interrupt is Enabled for GPIO%d_%d\n", bank, pin);
+  printk("Value of AM335X_GPIO_IRQSTATUS_SET_0 %X after\n", REG(gpio_bank_addrs[bank] + AM335X_GPIO_IRQSTATUS_SET_0));
+  
+  //mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_DEBOUNCENABLE), BIT(pin));
   switch ( interrupt ) {
     case FALLING_EDGE:
       /* Enables asynchronous falling edge detection. */
@@ -355,8 +358,10 @@ rtems_status_code rtems_bsp_enable_interrupt(
       mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_LEVELDETECT0), BIT(pin));
       break;
     case HIGH_LEVEL:
+      printk("Value of AM335X_GPIO_LEVELDETECT1 %X before\n", REG(gpio_bank_addrs[bank] + AM335X_GPIO_LEVELDETECT1));
       /* Enables pin high level detection. */
       mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_LEVELDETECT1), BIT(pin));
+      printk("Value of AM335X_GPIO_LEVELDETECT1 %X after\n", REG(gpio_bank_addrs[bank] + AM335X_GPIO_LEVELDETECT1));
       break;
     case BOTH_LEVELS:
       /* Enables pin low level detection. */
@@ -374,9 +379,9 @@ rtems_status_code rtems_bsp_enable_interrupt(
    * This period is required to clean the synchronization edge/
    * level detection pipeline
    */
-  asm volatile("nop"); asm volatile("nop"); asm volatile("nop");
+  /*asm volatile("nop"); asm volatile("nop"); asm volatile("nop");
   asm volatile("nop"); asm volatile("nop");
-
+  */
   return RTEMS_SUCCESSFUL;
 }
 
@@ -385,8 +390,7 @@ rtems_status_code rtems_bsp_disable_interrupt(
   uint32_t pin,
   rtems_gpio_interrupt interrupt
 ) {
-
-  /* Clear IRQ generation for the specific pin */
+    /* Clear IRQ generation for the specific pin */
   mmio_set((gpio_bank_addrs[bank] + AM335X_GPIO_IRQSTATUS_CLR_0), BIT(pin));
 
   switch ( interrupt ) {
