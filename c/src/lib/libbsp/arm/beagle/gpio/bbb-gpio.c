@@ -316,13 +316,10 @@ uint32_t rtems_gpio_bsp_interrupt_line(rtems_vector_number vector)
   /* Retrieve the interrupt event status. */
   event_status = mmio_read(bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0));
 
-  printk("Value of AM335X_GPIO_IRQSTATUS_0 %X before Clear\n", event_status);
   /* Clear the interrupt line. */
   mmio_write(
     (bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0)), event_status);
   
-  printf("Value of AM335X_GPIO_IRQSTATUS_0 %X After Clear\n", REG(bbb_reg(bank_nr, AM335X_GPIO_IRQSTATUS_0)));
-
   return event_status;
 }
 
