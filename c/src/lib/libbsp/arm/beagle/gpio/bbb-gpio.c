@@ -269,6 +269,7 @@ rtems_status_code rtems_gpio_bsp_set_resistor_mode(
   uint32_t pin,
   rtems_gpio_pull_mode mode
 ) {
+<<<<<<< HEAD
 
   /* If the target pin doesn't have pad config offset
    * (pin having only output capability) 
@@ -295,6 +296,10 @@ rtems_status_code rtems_gpio_bsp_set_resistor_mode(
   }
 
   return RTEMS_SUCCESSFUL;
+=======
+  /* TODO: Add support for setting up resistor moode */
+  return RTEMS_NOT_DEFINED;
+>>>>>>> upstream/master
 }
 
 rtems_vector_number rtems_gpio_bsp_get_vector(uint32_t bank)
