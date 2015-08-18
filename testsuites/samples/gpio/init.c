@@ -95,20 +95,21 @@ rtems_task Init(rtems_task_argument ignored)
   sc = rtems_gpio_request_pin(SW1, DIGITAL_INPUT, false, false, NULL);
   assert(sc == RTEMS_SUCCESSFUL);
 
-  sc = rtems_gpio_request_pin(SW2, DIGITAL_INPUT, false, false, NULL);
+  sc = rtems_gpio_request_pin(SW2, DIGITAL_OUTPUT, false, false, NULL);
   assert(sc == RTEMS_SUCCESSFUL);
 
   printk("GPIO request pin configured\n");
 
-
-  /* Enable interrupts, and assign handler functions */
-  sc = rtems_gpio_enable_interrupt(SW1, HIGH_LEVEL, UNIQUE_HANDLER, false, edge_test_1, &SW1);
+  sc = rtems_gpio_resistor_mode(SW1, PULL_UP);
   assert(sc == RTEMS_SUCCESSFUL);
+
+  rtems_gpio_set(SW2);
+  /* Enable interrupts, and assign handler functions */
+  //sc = rtems_gpio_enable_interrupt(SW1, HIGH_LEVEL, UNIQUE_HANDLER, false, edge_test_1, &SW1);
+  //assert(sc == RTEMS_SUCCESSFUL);
 
   //sc = rtems_gpio_enable_interrupt(SW2, BOTH_EDGES, UNIQUE_HANDLER, true, edge_test_2, &SW2);
   //assert(sc == RTEMS_SUCCESSFUL);
-
-  printk("interrupts are enabled\n");
 
   /* Keeps the program running, so interrupts can be tested. */
   while (1);
@@ -120,7 +121,7 @@ rtems_task Init(rtems_task_argument ignored)
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
  
-#define CONFIGURE_MAXIMUM_TASKS            6
+#define CONFIGURE_MAXIMUM_TASKS            4
 #define CONFIGURE_USE_DEVFS_AS_BASE_FILESYSTEM
 
 #define CONFIGURE_MAXIMUM_SEMAPHORES    5
@@ -128,8 +129,8 @@ rtems_task Init(rtems_task_argument ignored)
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE 
 #define CONFIGURE_INIT_TASK_PRIORITY 10
 
-#define CONFIGURE_EXTRA_TASK_STACKS         (100 * RTEMS_MINIMUM_STACK_SIZE)
-#define CONFIGURE_INIT_TASK_STACK_SIZE    (100 * RTEMS_MINIMUM_STACK_SIZE)
+#define CONFIGURE_EXTRA_TASK_STACKS         (4 * RTEMS_MINIMUM_STACK_SIZE)
+#define CONFIGURE_INIT_TASK_STACK_SIZE    (2 * RTEMS_MINIMUM_STACK_SIZE)
  
 #define CONFIGURE_INITIAL_EXTENSIONS RTEMS_TEST_INITIAL_EXTENSION
 #define CONFIGURE_INIT_TASK_INITIAL_MODES RTEMS_DEFAULT_MODES
