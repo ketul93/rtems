@@ -269,37 +269,9 @@ rtems_status_code rtems_gpio_bsp_set_resistor_mode(
   uint32_t pin,
   rtems_gpio_pull_mode mode
 ) {
-<<<<<<< HEAD
 
-  /* If the target pin doesn't have pad config offset
-   * (pin having only output capability) 
-   * than silently exists. */
-  if ((uint32_t) (gpio_pad_conf[bank][pin]) == CONF_NOT_DEFINED) {
-    return RTEMS_SUCCESSFUL;
-  }
-  /* Enable Pull Up/Down bit and setting Mux Mode 7 */
-  mmio_set(bbb_conf_reg(bank, pin), (BBB_PUDEN | BBB_MUXMODE(7)));
-
-  /* Set control signal. */
-  switch ( mode ) {
-    case PULL_UP:
-      mmio_set(bbb_conf_reg(bank, pin), BBB_PU_EN);
-      break;
-    case PULL_DOWN:
-      mmio_clear(bbb_conf_reg(bank, pin), ~BBB_PD_EN);
-      break;
-    case NO_PULL_RESISTOR:
-      mmio_clear(bbb_conf_reg(bank, pin), ~BBB_PUDDIS);
-      break;
-    default:
-      return RTEMS_UNSATISFIED;
-  }
-
-  return RTEMS_SUCCESSFUL;
-=======
   /* TODO: Add support for setting up resistor moode */
   return RTEMS_NOT_DEFINED;
->>>>>>> upstream/master
 }
 
 rtems_vector_number rtems_gpio_bsp_get_vector(uint32_t bank)
