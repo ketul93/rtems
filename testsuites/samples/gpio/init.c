@@ -20,55 +20,7 @@ rtems_gpio_irq_state edge_test_2(void * arg);
 uint32_t LED1, LED2;
 uint32_t SW1, SW2;
 
-const char rtems_test_name[] = "LIBGPIO_TEST_IRQ";
-
-rtems_gpio_irq_state edge_test_1(void *arg)
-{
-  rtems_status_code sc;
-  int pin_number;
-  int val;
-
-  pin_number = *((int*) arg);
-
-  printk("\nisr: pin %d\n", pin_number);
-
-  val = rtems_gpio_get_value(SW1);
-/*
-  if ( val == 0 ) {
-    sc = rtems_gpio_clear(LED1);
-    assert(sc == RTEMS_SUCCESSFUL);
-  }
-  else {
-    sc = rtems_gpio_set(LED1);
-    assert(sc == RTEMS_SUCCESSFUL);
-  }
-*/
-  return IRQ_HANDLED;
-}
-
-rtems_gpio_irq_state edge_test_2(void *arg)
-{
-  rtems_status_code sc;
-  int pin_number;
-  int val;
-
-  pin_number = *((int*) arg);
-
-  printk("\nisr: pin %d\n", pin_number);
-
-  val = rtems_gpio_get_value(SW2);
-
-  if ( val == 0 ) {
-    sc = rtems_gpio_clear(LED2);
-    assert(sc == RTEMS_SUCCESSFUL);
-  }
-  else {
-    sc = rtems_gpio_set(LED2);
-    assert(sc == RTEMS_SUCCESSFUL);
-  }
-
-  return IRQ_HANDLED;
-}
+const char rtems_test_name[] = "LIBGPIO_TEST";
 
 rtems_task Init(rtems_task_argument ignored)
 {
@@ -95,22 +47,19 @@ rtems_task Init(rtems_task_argument ignored)
   sc = rtems_gpio_request_pin(SW1, DIGITAL_INPUT, false, false, NULL);
   assert(sc == RTEMS_SUCCESSFUL);
 
-  sc = rtems_gpio_request_pin(SW2, DIGITAL_OUTPUT, false, false, NULL);
+  sc = rtems_gpio_request_pin(SW2, DIGITAL_INPUT, false, false, NULL);
   assert(sc == RTEMS_SUCCESSFUL);
 
   printk("GPIO request pin configured\n");
 
-  sc = rtems_gpio_resistor_mode(SW1, PULL_UP);
+  sc = rtems_gpio_resistor_mode(SW1, PULL_DOWN);
   assert(sc == RTEMS_SUCCESSFUL);
 
-  rtems_gpio_set(SW2);
-  /* Enable interrupts, and assign handler functions */
-  //sc = rtems_gpio_enable_interrupt(SW1, HIGH_LEVEL, UNIQUE_HANDLER, false, edge_test_1, &SW1);
-  //assert(sc == RTEMS_SUCCESSFUL);
+  sc = rtems_gpio_resistor_mode(SW2, PULL_UP);
+  assert(sc == RTEMS_SUCCESSFUL);
 
-  //sc = rtems_gpio_enable_interrupt(SW2, BOTH_EDGES, UNIQUE_HANDLER, true, edge_test_2, &SW2);
-  //assert(sc == RTEMS_SUCCESSFUL);
-
+  rtems_gpio_set(LED1);
+ 
   /* Keeps the program running, so interrupts can be tested. */
   while (1);
 
