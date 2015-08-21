@@ -269,8 +269,28 @@ rtems_status_code rtems_gpio_bsp_set_resistor_mode(
   uint32_t pin,
   rtems_gpio_pull_mode mode
 ) {
-  /* TODO: Add support for setting up resistor moode */
-  return RTEMS_NOT_DEFINED;
+  /* If control module offset mapping is not defined 
+   * then function exists silently.
+   */
+  if (gpio_pad_conf[bank][pin] == CONF_NOT_DEFINED){
+    return RTEMS_SUCCESSFUL;
+  }
+  /* Set control signal. */
+  switch ( mode ) {
+    case PULL_UP:
+      mmio_set(bbb_conf_reg(bank, pin), BBB_PU_EN);
+      break;
+    case PULL_DOWN:
+      mmio_clear(bbb_conf_reg(bank, pin), ~BBB_PUDDIS);
+      break;
+    case NO_PULL_RESISTOR:
+      mmio_clear(bbb_conf_reg(bank, pin), ~BBB_PUDDIS);
+      break;
+    default:
+      return RTEMS_UNSATISFIED;
+  }
+
+  return RTEMS_SUCCESSFUL;
 }
 
 rtems_vector_number rtems_gpio_bsp_get_vector(uint32_t bank)
